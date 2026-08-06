@@ -2,7 +2,6 @@
   "name": "travelblack",
   "version": "0.1.0",
   "private": true,
-
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -11,11 +10,9 @@
     "prisma": "prisma",
     "seed": "prisma db seed"
   },
-
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
-
   "dependencies": {
     "@prisma/client": "^6.16.2",
     "bcryptjs": "^3.0.3",
@@ -27,7 +24,6 @@
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
-
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
@@ -37,7 +33,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "tsx": "^4.19.2"
+    "tsx": "^4.19.2",
+    "typescript": "^5"
   }
 }
