@@ -25,8 +25,8 @@ export default function DestinationCard({
       href={`/destination/${id}`}
       className="group block min-w-[280px] sm:min-w-[300px]"
     >
-      <article className="overflow-hidden rounded-3xl border border-red-900/40 bg-zinc-950 shadow-xl transition duration-300 hover:-translate-y-1 hover:border-red-600 hover:shadow-red-950/40">
-        <div className="relative h-64 w-full overflow-hidden">
+      <article className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-xl transition duration-300 hover:-translate-y-1 hover:border-red-500/30">
+        <div className="relative h-[260px] w-full overflow-hidden">
           <Image
             src={image}
             alt={`${name}, ${country}`}
@@ -44,19 +44,13 @@ export default function DestinationCard({
         </div>
 
         <div className="p-5">
-          <h3 className="text-xl font-bold text-white">
-            {name}
-          </h3>
+          <h3 className="text-xl font-bold text-white">{name}</h3>
 
-          <p className="mt-1 text-sm text-gray-400">
-            {country}
-          </p>
+          <p className="mt-1 text-sm text-gray-400">{country}</p>
 
           <div className="mt-4 flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs text-gray-500">
-                Starting from
-              </p>
+              <p className="text-xs text-gray-500">Starting from</p>
 
               <p className="text-lg font-extrabold text-red-500">
                 ₹{Number(price).toLocaleString("en-IN")}
