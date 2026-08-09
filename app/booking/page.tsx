@@ -20,6 +20,12 @@ type Destination = {
   image: string;
 };
 
+type ApiResult = {
+  success?: boolean;
+  message?: string;
+  booking?: unknown;
+};
+
 function BookingContent() {
   const params = useSearchParams();
 
@@ -42,6 +48,9 @@ function BookingContent() {
   const [confirming, setConfirming] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 
+  /*
+   * LOAD BOOKING TARGET
+   */
   useEffect(() => {
     async function loadBookingTarget() {
       try {
@@ -56,8 +65,27 @@ function BookingContent() {
             `/api/hotels/${hotelId}`,
             {
               cache: "no-store",
+              headers: {
+                Accept: "application/json",
+              },
             }
           );
+
+          const contentType =
+            response.headers.get("content-type") || "";
+
+          if (!contentType.includes("application/json")) {
+            const text = await response.text();
+
+            console.error(
+              "HOTEL API RETURNED NON-JSON:",
+              text
+            );
+
+            throw new Error(
+              "Unable to load the selected hotel."
+            );
+          }
 
           const data = await response.json();
 
@@ -119,8 +147,27 @@ function BookingContent() {
             `/api/destination/${destinationId}`,
             {
               cache: "no-store",
+              headers: {
+                Accept: "application/json",
+              },
             }
           );
+
+          const contentType =
+            response.headers.get("content-type") || "";
+
+          if (!contentType.includes("application/json")) {
+            const text = await response.text();
+
+            console.error(
+              "DESTINATION API RETURNED NON-JSON:",
+              text
+            );
+
+            throw new Error(
+              "Unable to load the selected destination."
+            );
+          }
 
           const data = await response.json();
 
@@ -193,6 +240,9 @@ function BookingContent() {
     loadBookingTarget();
   }, [hotelId, destinationId]);
 
+  /*
+   * CONFIRM BOOKING
+   */
   async function confirmBooking() {
     try {
       setConfirming(true);
@@ -220,14 +270,22 @@ function BookingContent() {
         currentUser =
           JSON.parse(storedUser);
       } catch {
+        localStorage.removeItem(
+          "travelblack-user"
+        );
+
         throw new Error(
-          "Your saved user session is invalid. Please log in again."
+          "Your saved login session is invalid. Please log in again."
         );
       }
 
       if (!currentUser?.id) {
+        localStorage.removeItem(
+          "travelblack-user"
+        );
+
         throw new Error(
-          "User account could not be identified."
+          "User account could not be identified. Please log in again."
         );
       }
 
@@ -292,17 +350,12 @@ function BookingContent() {
        * TOTAL
        */
       const total = hotel
-        ? Number(hotel.price) * Number(rooms)
+        ? Number(hotel.price) *
+          Number(rooms)
         : 5000;
 
       /*
-       * IMPORTANT:
-       * Store a snapshot of the selected hotel.
-       *
-       * This means My Bookings can still display
-       * the correct hotel name, image, location,
-       * price and rating even if the database
-       * hotel relation changes later.
+       * BOOKING PAYLOAD
        */
       const payload = {
         userId: String(
@@ -312,27 +365,6 @@ function BookingContent() {
         hotelId: hotel
           ? Number(hotel.id)
           : null,
-
-        hotelName: hotel
-          ? String(hotel.name)
-          : null,
-
-        hotelLocation: hotel
-          ? String(hotel.location)
-          : null,
-
-        hotelImage: hotel
-          ? String(hotel.image)
-          : null,
-
-        hotelPrice: hotel
-          ? Number(hotel.price)
-          : null,
-
-        hotelRating:
-          hotel?.rating !== undefined
-            ? Number(hotel.rating)
-            : 4.5,
 
         destinationId: destination
           ? Number(destination.id)
@@ -363,6 +395,7 @@ function BookingContent() {
           headers: {
             "Content-Type":
               "application/json",
+            Accept: "application/json",
           },
 
           body: JSON.stringify(
@@ -371,8 +404,45 @@ function BookingContent() {
         }
       );
 
-      const result =
-        await response.json();
+      /*
+       * NEVER blindly call response.json().
+       *
+       * This prevents:
+       *
+       * Unexpected token '<'
+       *
+       * when a server returns HTML.
+       */
+      const contentType =
+        response.headers.get(
+          "content-type"
+        ) || "";
+
+      let result: ApiResult;
+
+      if (
+        contentType.includes(
+          "application/json"
+        )
+      ) {
+        result = await response.json();
+      } else {
+        const text =
+          await response.text();
+
+        console.error(
+          "BOOKING API RETURNED NON-JSON:",
+          {
+            status: response.status,
+            contentType,
+            response: text,
+          }
+        );
+
+        throw new Error(
+          `Booking service returned an unexpected response (${response.status}). Please try again.`
+        );
+      }
 
       console.log(
         "BOOKING RESPONSE:",
@@ -380,6 +450,15 @@ function BookingContent() {
       );
 
       if (!response.ok) {
+        throw new Error(
+          result?.message ||
+            "Booking failed."
+        );
+      }
+
+      if (
+        result?.success === false
+      ) {
         throw new Error(
           result?.message ||
             "Booking failed."
@@ -408,10 +487,14 @@ function BookingContent() {
    */
   if (loading) {
     return (
-      <main className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p className="text-xl text-gray-400">
-          Loading booking...
-        </p>
+      <main className="min-h-screen bg-black text-white flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-red-900 border-t-red-500 rounded-full animate-spin mx-auto" />
+
+          <p className="mt-5 text-gray-400">
+            Loading booking...
+          </p>
+        </div>
       </main>
     );
   }
@@ -422,8 +505,7 @@ function BookingContent() {
   if (error) {
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center p-8">
-        <div className="max-w-xl w-full bg-zinc-950 border border-red-900 rounded-3xl p-10 text-center">
-
+        <section className="max-w-xl w-full bg-gradient-to-r from-black via-red-950 to-black border border-red-900 rounded-3xl p-8 text-center shadow-2xl">
           <h1 className="text-3xl font-bold text-red-500">
             Booking Error
           </h1>
@@ -432,14 +514,25 @@ function BookingContent() {
             {error}
           </p>
 
-          <Link
-            href="/"
-            className="inline-block mt-8 bg-red-600 hover:bg-red-700 px-8 py-4 rounded-2xl font-bold"
-          >
-            Back Home
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+            <button
+              type="button"
+              onClick={() =>
+                window.location.reload()
+              }
+              className="bg-red-600 hover:bg-red-700 px-8 py-4 rounded-2xl font-bold"
+            >
+              Try Again
+            </button>
 
-        </div>
+            <Link
+              href="/"
+              className="inline-block border border-red-900 hover:bg-zinc-900 px-8 py-4 rounded-2xl font-bold"
+            >
+              Back Home
+            </Link>
+          </div>
+        </section>
       </main>
     );
   }
@@ -472,15 +565,11 @@ function BookingContent() {
     .split("T")[0];
 
   return (
-    <main className="min-h-screen bg-black text-white p-6 md:p-8">
-
+    <main className="min-h-screen bg-black text-white p-4 md:p-8">
       <section className="max-w-5xl mx-auto">
-
         <div className="bg-gradient-to-r from-black via-red-950 to-black border border-red-900 rounded-3xl overflow-hidden shadow-2xl">
-
           {image && (
             <div className="relative h-80">
-
               <img
                 src={image}
                 alt={title}
@@ -490,7 +579,6 @@ function BookingContent() {
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
 
               <div className="absolute bottom-6 left-6 md:left-8">
-
                 <h1 className="text-4xl md:text-5xl font-extrabold">
                   {title}
                 </h1>
@@ -498,14 +586,11 @@ function BookingContent() {
                 <p className="text-gray-300 mt-2 text-lg">
                   {location}
                 </p>
-
               </div>
-
             </div>
           )}
 
           <div className="p-6 md:p-8">
-
             <h2 className="text-3xl font-bold">
               Complete Your Booking
             </h2>
@@ -516,7 +601,6 @@ function BookingContent() {
 
             {hotel && (
               <div className="mt-6 bg-black border border-red-900 rounded-2xl p-5">
-
                 <p className="text-gray-400">
                   Hotel
                 </p>
@@ -535,8 +619,8 @@ function BookingContent() {
                     hotel.price
                   ).toLocaleString(
                     "en-IN"
-                  )}
-                  {" "}per night
+                  )}{" "}
+                  per night
                 </p>
 
                 {hotel.rating !==
@@ -548,13 +632,11 @@ function BookingContent() {
                     ).toFixed(1)}
                   </p>
                 )}
-
               </div>
             )}
 
             {destination && (
               <div className="mt-6 bg-black border border-red-900 rounded-2xl p-5">
-
                 <p className="text-gray-400">
                   Destination
                 </p>
@@ -572,14 +654,11 @@ function BookingContent() {
                 <p className="text-red-500 mt-2">
                   Destination reservation
                 </p>
-
               </div>
             )}
 
             <div className="grid md:grid-cols-2 gap-6 mt-8">
-
               <div>
-
                 <label className="block text-sm text-gray-400 mb-2">
                   Check-in Date
                 </label>
@@ -603,11 +682,9 @@ function BookingContent() {
                   }}
                   className="w-full bg-black border border-red-900 rounded-xl px-4 py-4 text-white"
                 />
-
               </div>
 
               <div>
-
                 <label className="block text-sm text-gray-400 mb-2">
                   Check-out Date
                 </label>
@@ -616,8 +693,7 @@ function BookingContent() {
                   type="date"
                   value={checkOut}
                   min={
-                    checkIn ||
-                    today
+                    checkIn || today
                   }
                   onChange={(event) =>
                     setCheckOut(
@@ -626,11 +702,9 @@ function BookingContent() {
                   }
                   className="w-full bg-black border border-red-900 rounded-xl px-4 py-4 text-white"
                 />
-
               </div>
 
               <div>
-
                 <label className="block text-sm text-gray-400 mb-2">
                   Guests
                 </label>
@@ -658,11 +732,9 @@ function BookingContent() {
                   }}
                   className="w-full bg-black border border-red-900 rounded-xl px-4 py-4 text-white"
                 />
-
               </div>
 
               <div>
-
                 <label className="block text-sm text-gray-400 mb-2">
                   Rooms
                 </label>
@@ -690,17 +762,12 @@ function BookingContent() {
                   }}
                   className="w-full bg-black border border-red-900 rounded-xl px-4 py-4 text-white"
                 />
-
               </div>
-
             </div>
 
             <div className="mt-8 bg-black border border-red-900 rounded-2xl p-6">
-
               <div className="flex items-center justify-between gap-4">
-
                 <span className="text-gray-400">
-
                   {hotel
                     ? `₹${Number(
                         hotel.price
@@ -708,22 +775,17 @@ function BookingContent() {
                         "en-IN"
                       )} × ${rooms} room(s)`
                     : "Destination reservation"}
-
                 </span>
 
                 <span className="text-2xl font-bold text-red-500">
-
                   ₹
                   {Number(
                     total
                   ).toLocaleString(
                     "en-IN"
                   )}
-
                 </span>
-
               </div>
-
             </div>
 
             {!confirmed ? (
@@ -743,7 +805,6 @@ function BookingContent() {
               </button>
             ) : (
               <div className="mt-8 bg-green-700 rounded-2xl p-6 text-center">
-
                 <h2 className="text-2xl font-bold">
                   Booking Confirmed Successfully
                 </h2>
@@ -758,7 +819,6 @@ function BookingContent() {
                 >
                   View My Bookings
                 </Link>
-
               </div>
             )}
 
@@ -768,13 +828,9 @@ function BookingContent() {
             >
               ← Back Home
             </Link>
-
           </div>
-
         </div>
-
       </section>
-
     </main>
   );
 }
@@ -783,8 +839,14 @@ export default function BookingPage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen bg-black text-white flex items-center justify-center">
-          Loading Booking...
+        <main className="min-h-screen bg-black text-white flex items-center justify-center p-8">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-red-900 border-t-red-500 rounded-full animate-spin mx-auto" />
+
+            <p className="mt-5 text-gray-400">
+              Loading Booking...
+            </p>
+          </div>
         </main>
       }
     >

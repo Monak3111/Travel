@@ -18,39 +18,49 @@ export default function LoginPage() {
       return;
     }
 
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        password,
-      }),
-    });
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    setLoading(false);
+      if (!res.ok) {
+        alert(
+          data?.message ||
+            "Unable to login."
+        );
+        return;
+      }
 
-    if (!res.ok) {
-      alert(data.message);
-      return;
+      alert("Login successful!");
+
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      console.error("LOGIN ERROR:", error);
+
+      alert(
+        "Unable to connect to the server. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
-
-    localStorage.setItem("travelblack-user", JSON.stringify(data.user));
-
-    alert("Login successful!");
-
-    router.push("/");
   }
 
   return (
-    <main className="min-h-screen bg-black text-white p-8 flex items-center justify-center">
-      <section className="w-full max-w-md bg-zinc-950 border border-red-900 rounded-3xl p-10">
-
+    <main className="min-h-screen bg-black text-white flex items-center justify-center p-6">
+      <section className="w-full max-w-md bg-gradient-to-br from-black via-red-950/40 to-black border border-red-900 rounded-3xl p-8 shadow-2xl">
         <h1 className="text-4xl font-extrabold">
           Welcome Back
         </h1>
@@ -60,31 +70,35 @@ export default function LoginPage() {
         </p>
 
         <div className="mt-8 space-y-5">
-
           <input
             type="email"
             placeholder="Email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-black border border-red-900 rounded-xl px-5 py-4"
+            onChange={(e) =>
+              setEmail(e.target.value)
+            }
+            className="w-full bg-black border border-red-900 rounded-xl px-5 py-4 text-white outline-none focus:border-red-500"
           />
 
           <input
             type="password"
             placeholder="Password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full bg-black border border-red-900 rounded-xl px-5 py-4"
+            onChange={(e) =>
+              setPassword(e.target.value)
+            }
+            className="w-full bg-black border border-red-900 rounded-xl px-5 py-4 text-white outline-none focus:border-red-500"
           />
 
           <button
             onClick={login}
             disabled={loading}
-            className="w-full bg-red-600 py-4 rounded-full font-bold hover:bg-red-700 transition"
+            className="w-full bg-red-600 py-4 rounded-full font-bold hover:bg-red-700 transition disabled:opacity-60"
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading
+              ? "Logging in..."
+              : "Login"}
           </button>
-
         </div>
 
         <p className="mt-6 text-gray-400 text-center">
@@ -92,12 +106,11 @@ export default function LoginPage() {
 
           <Link
             href="/signup"
-            className="text-red-500 ml-2"
+            className="text-red-500 ml-2 hover:text-red-400"
           >
             Create Account
           </Link>
         </p>
-
       </section>
     </main>
   );
