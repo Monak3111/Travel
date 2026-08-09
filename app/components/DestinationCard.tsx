@@ -23,55 +23,49 @@ export default function DestinationCard({
   return (
     <Link
       href={`/destination/${id}`}
-      className="group block min-w-[280px]"
+      className="group block min-w-[280px] sm:min-w-[300px]"
     >
-      <article className="overflow-hidden rounded-3xl border border-red-900/60 bg-zinc-950 shadow-xl transition duration-300 hover:-translate-y-1 hover:border-red-600">
-        <div className="relative h-72 w-full overflow-hidden">
-          {image ? (
-            <Image
-              src={image}
-              alt={`${name}, ${country}`}
-              fill
-              sizes="(max-width: 768px) 90vw, 280px"
-              quality={90}
-              className="object-cover transition duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-zinc-900 text-gray-500">
-              No image
-            </div>
-          )}
+      <article className="overflow-hidden rounded-3xl border border-red-900/40 bg-zinc-950 shadow-xl transition duration-300 hover:-translate-y-1 hover:border-red-600 hover:shadow-red-950/40">
+        <div className="relative h-64 w-full overflow-hidden">
+          <Image
+            src={image}
+            alt={`${name}, ${country}`}
+            fill
+            sizes="(max-width: 640px) 280px, 300px"
+            quality={90}
+            className="object-cover transition duration-500 group-hover:scale-105"
+          />
 
-          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black via-black/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
 
-          <div className="absolute bottom-4 left-4 right-4">
-            <h3 className="text-2xl font-bold text-white">
-              {name}
-            </h3>
-
-            <p className="mt-1 text-sm text-gray-300">
-              {country}
-            </p>
+          <div className="absolute right-4 top-4 rounded-full bg-black/70 px-3 py-1 text-sm font-bold text-white backdrop-blur-sm">
+            ★ {rating}
           </div>
         </div>
 
         <div className="p-5">
-          <div className="flex items-center justify-between gap-4">
+          <h3 className="text-xl font-bold text-white">
+            {name}
+          </h3>
+
+          <p className="mt-1 text-sm text-gray-400">
+            {country}
+          </p>
+
+          <div className="mt-4 flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs uppercase tracking-wider text-gray-500">
-                From
+              <p className="text-xs text-gray-500">
+                Starting from
               </p>
 
-              <p className="mt-1 text-lg font-bold text-white">
+              <p className="text-lg font-extrabold text-red-500">
                 ₹{Number(price).toLocaleString("en-IN")}
               </p>
             </div>
 
-            <div className="rounded-full border border-red-900 bg-black px-3 py-1.5">
-              <span className="text-sm font-bold text-red-500">
-                ★ {Number(rating).toFixed(1)}
-              </span>
-            </div>
+            <span className="rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white transition group-hover:bg-red-500">
+              Explore
+            </span>
           </div>
         </div>
       </article>
