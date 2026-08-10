@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Suspense,
-  useEffect,
-  useState,
-} from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -34,38 +30,23 @@ function BookingContent() {
   const params = useSearchParams();
 
   const hotelId = params.get("hotel");
-  const destinationId =
-    params.get("destination");
+  const destinationId = params.get("destination");
 
-  const [hotel, setHotel] =
-    useState<Hotel | null>(null);
-
+  const [hotel, setHotel] = useState<Hotel | null>(null);
   const [destination, setDestination] =
     useState<Destination | null>(null);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [error, setError] =
-    useState("");
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
 
-  const [checkIn, setCheckIn] =
-    useState("");
+  const [guests, setGuests] = useState(2);
+  const [rooms, setRooms] = useState(1);
 
-  const [checkOut, setCheckOut] =
-    useState("");
-
-  const [guests, setGuests] =
-    useState(2);
-
-  const [rooms, setRooms] =
-    useState(1);
-
-  const [confirming, setConfirming] =
-    useState(false);
-
-  const [confirmed, setConfirmed] =
-    useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
 
   /*
    * LOAD BOOKING TARGET
@@ -80,30 +61,21 @@ function BookingContent() {
          * HOTEL BOOKING
          */
         if (hotelId) {
-          const response =
-            await fetch(
-              `/api/hotels/${hotelId}`,
-              {
-                cache: "no-store",
-                headers: {
-                  Accept:
-                    "application/json",
-                },
-              }
-            );
+          const response = await fetch(
+            `/api/hotels/${hotelId}`,
+            {
+              cache: "no-store",
+              headers: {
+                Accept: "application/json",
+              },
+            }
+          );
 
           const contentType =
-            response.headers.get(
-              "content-type"
-            ) || "";
+            response.headers.get("content-type") || "";
 
-          if (
-            !contentType.includes(
-              "application/json"
-            )
-          ) {
-            const text =
-              await response.text();
+          if (!contentType.includes("application/json")) {
+            const text = await response.text();
 
             console.error(
               "HOTEL API RETURNED NON-JSON:",
@@ -115,8 +87,7 @@ function BookingContent() {
             );
           }
 
-          const data =
-            await response.json();
+          const data = await response.json();
 
           if (!response.ok) {
             throw new Error(
@@ -134,45 +105,33 @@ function BookingContent() {
             );
           }
 
-          const normalizedHotel: Hotel =
-            {
-              id: Number(
-                selectedHotel.id
-              ),
+          const normalizedHotel: Hotel = {
+            id: Number(selectedHotel.id),
 
-              name: String(
-                selectedHotel.name ??
-                  "Hotel"
-              ),
+            name: String(
+              selectedHotel.name ?? "Hotel"
+            ),
 
-              location: String(
-                selectedHotel.location ??
-                  "TravelBlack"
-              ),
+            location: String(
+              selectedHotel.location ?? "TravelBlack"
+            ),
 
-              image: String(
-                selectedHotel.image ?? ""
-              ),
+            image: String(
+              selectedHotel.image ?? ""
+            ),
 
-              price: Number(
-                selectedHotel.price ?? 5000
-              ),
+            price: Number(
+              selectedHotel.price ?? 5000
+            ),
 
-              rating:
-                selectedHotel.rating !==
-                  undefined &&
-                selectedHotel.rating !==
-                  null
-                  ? Number(
-                      selectedHotel.rating
-                    )
-                  : undefined,
-            };
+            rating:
+              selectedHotel.rating !== undefined &&
+              selectedHotel.rating !== null
+                ? Number(selectedHotel.rating)
+                : undefined,
+          };
 
-          setHotel(
-            normalizedHotel
-          );
-
+          setHotel(normalizedHotel);
           setDestination(null);
 
           return;
@@ -182,30 +141,21 @@ function BookingContent() {
          * DESTINATION BOOKING
          */
         if (destinationId) {
-          const response =
-            await fetch(
-              `/api/destination/${destinationId}`,
-              {
-                cache: "no-store",
-                headers: {
-                  Accept:
-                    "application/json",
-                },
-              }
-            );
+          const response = await fetch(
+            `/api/destination/${destinationId}`,
+            {
+              cache: "no-store",
+              headers: {
+                Accept: "application/json",
+              },
+            }
+          );
 
           const contentType =
-            response.headers.get(
-              "content-type"
-            ) || "";
+            response.headers.get("content-type") || "";
 
-          if (
-            !contentType.includes(
-              "application/json"
-            )
-          ) {
-            const text =
-              await response.text();
+          if (!contentType.includes("application/json")) {
+            const text = await response.text();
 
             console.error(
               "DESTINATION API RETURNED NON-JSON:",
@@ -217,8 +167,7 @@ function BookingContent() {
             );
           }
 
-          const data =
-            await response.json();
+          const data = await response.json();
 
           if (!response.ok) {
             throw new Error(
@@ -230,42 +179,30 @@ function BookingContent() {
           const selectedDestination =
             data?.destination ?? data;
 
-          if (
-            !selectedDestination?.id
-          ) {
+          if (!selectedDestination?.id) {
             throw new Error(
               "Selected destination does not exist."
             );
           }
 
-          const normalizedDestination: Destination =
-            {
-              id: Number(
-                selectedDestination.id
-              ),
+          const normalizedDestination: Destination = {
+            id: Number(selectedDestination.id),
 
-              name: String(
-                selectedDestination.name ??
-                  "Travel Destination"
-              ),
+            name: String(
+              selectedDestination.name ??
+                "Travel Destination"
+            ),
 
-              country:
-                selectedDestination.country
-                  ? String(
-                      selectedDestination.country
-                    )
-                  : undefined,
+            country: selectedDestination.country
+              ? String(selectedDestination.country)
+              : undefined,
 
-              image: String(
-                selectedDestination.image ??
-                  ""
-              ),
-            };
+            image: String(
+              selectedDestination.image ?? ""
+            ),
+          };
 
-          setDestination(
-            normalizedDestination
-          );
-
+          setDestination(normalizedDestination);
           setHotel(null);
 
           return;
@@ -302,15 +239,6 @@ function BookingContent() {
       setError("");
 
       /*
-       * IMPORTANT:
-       *
-       * We no longer read localStorage.
-       *
-       * The server identifies the logged-in
-       * user from the HTTP-only auth cookie.
-       */
-
-      /*
        * DATES
        */
       if (!checkIn) {
@@ -334,12 +262,8 @@ function BookingContent() {
       );
 
       if (
-        Number.isNaN(
-          startDate.getTime()
-        ) ||
-        Number.isNaN(
-          endDate.getTime()
-        )
+        Number.isNaN(startDate.getTime()) ||
+        Number.isNaN(endDate.getTime())
       ) {
         throw new Error(
           "Please select valid booking dates."
@@ -371,17 +295,15 @@ function BookingContent() {
        * TOTAL
        */
       const total = hotel
-        ? Number(hotel.price) *
-          Number(rooms)
+        ? Number(hotel.price) * Number(rooms)
         : 5000;
 
       /*
        * BOOKING PAYLOAD
        *
-       * NO userId is sent.
-       *
-       * The server gets the user ID
-       * from the authenticated cookie.
+       * No userId is sent.
+       * The server identifies the logged-in user
+       * from the authentication cookie.
        */
       const payload = {
         hotelId: hotel
@@ -410,57 +332,42 @@ function BookingContent() {
       /*
        * CREATE BOOKING
        */
-      const response =
-        await fetch(
-          "/api/booking/create",
-          {
-            method: "POST",
+      const response = await fetch(
+        "/api/booking/create",
+        {
+          method: "POST",
 
-            headers: {
-              "Content-Type":
-                "application/json",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
 
-              Accept:
-                "application/json",
-            },
+          credentials: "include",
 
-            credentials: "include",
-
-            body: JSON.stringify(
-              payload
-            ),
-          }
-        );
+          body: JSON.stringify(payload),
+        }
+      );
 
       /*
        * NEVER blindly call response.json()
        */
       const contentType =
-        response.headers.get(
-          "content-type"
-        ) || "";
+        response.headers.get("content-type") || "";
 
       let result: ApiResult;
 
       if (
-        contentType.includes(
-          "application/json"
-        )
+        contentType.includes("application/json")
       ) {
-        result =
-          await response.json();
+        result = await response.json();
       } else {
-        const text =
-          await response.text();
+        const text = await response.text();
 
         console.error(
           "BOOKING API RETURNED NON-JSON:",
           {
-            status:
-              response.status,
-
+            status: response.status,
             contentType,
-
             response: text,
           }
         );
@@ -482,9 +389,7 @@ function BookingContent() {
         );
       }
 
-      if (
-        result?.success === false
-      ) {
+      if (result?.success === false) {
         throw new Error(
           result?.message ||
             "Booking failed."
@@ -514,13 +419,9 @@ function BookingContent() {
   if (loading) {
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center p-8">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-red-900 border-t-red-500 rounded-full animate-spin mx-auto" />
-
-          <p className="mt-5 text-gray-400">
-            Loading booking...
-          </p>
-        </div>
+        <p className="text-gray-400">
+          Loading booking...
+        </p>
       </main>
     );
   }
@@ -531,7 +432,7 @@ function BookingContent() {
   if (error) {
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center p-8">
-        <section className="max-w-xl w-full bg-gradient-to-r from-black via-red-950 to-black border border-red-900 rounded-3xl p-8 text-center shadow-2xl">
+        <div className="text-center max-w-xl">
           <h1 className="text-3xl font-bold text-red-500">
             Booking Error
           </h1>
@@ -558,7 +459,7 @@ function BookingContent() {
               Back Home
             </Link>
           </div>
-        </section>
+        </div>
       </main>
     );
   }
@@ -582,8 +483,7 @@ function BookingContent() {
     "";
 
   const total = hotel
-    ? Number(hotel.price) *
-      Number(rooms)
+    ? Number(hotel.price) * Number(rooms)
     : 5000;
 
   const today = new Date()
@@ -591,15 +491,15 @@ function BookingContent() {
     .split("T")[0];
 
   return (
-    <main className="min-h-screen bg-black text-white p-4 md:p-8">
+    <main className="min-h-screen bg-black text-white px-4 py-10 md:px-8">
       <section className="max-w-5xl mx-auto">
-        <div className="bg-gradient-to-r from-black via-red-950 to-black border border-red-900 rounded-3xl overflow-hidden shadow-2xl">
+        <div className="bg-zinc-950 border border-red-900 rounded-3xl overflow-hidden shadow-2xl">
           {image && (
-            <div className="relative h-80">
+            <div className="relative h-[320px] md:h-[450px]">
               <img
                 src={image}
                 alt={title}
-                className="w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover"
               />
 
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
@@ -643,14 +543,11 @@ function BookingContent() {
                   ₹
                   {Number(
                     hotel.price
-                  ).toLocaleString(
-                    "en-IN"
-                  )}{" "}
+                  ).toLocaleString("en-IN")}{" "}
                   per night
                 </p>
 
-                {hotel.rating !==
-                  undefined && (
+                {hotel.rating !== undefined && (
                   <p className="text-yellow-400 mt-2">
                     ★{" "}
                     {Number(
@@ -718,9 +615,7 @@ function BookingContent() {
                 <input
                   type="date"
                   value={checkOut}
-                  min={
-                    checkIn || today
-                  }
+                  min={checkIn || today}
                   onChange={(event) =>
                     setCheckOut(
                       event.target.value
@@ -746,13 +641,8 @@ function BookingContent() {
                       );
 
                     setGuests(
-                      Number.isFinite(
-                        value
-                      )
-                        ? Math.max(
-                            1,
-                            value
-                          )
+                      Number.isFinite(value)
+                        ? Math.max(1, value)
                         : 1
                     );
                   }}
@@ -776,13 +666,8 @@ function BookingContent() {
                       );
 
                     setRooms(
-                      Number.isFinite(
-                        value
-                      )
-                        ? Math.max(
-                            1,
-                            value
-                          )
+                      Number.isFinite(value)
+                        ? Math.max(1, value)
                         : 1
                     );
                   }}
@@ -807,9 +692,7 @@ function BookingContent() {
                   ₹
                   {Number(
                     total
-                  ).toLocaleString(
-                    "en-IN"
-                  )}
+                  ).toLocaleString("en-IN")}
                 </span>
               </div>
             </div>
@@ -817,12 +700,8 @@ function BookingContent() {
             {!confirmed ? (
               <button
                 type="button"
-                onClick={
-                  confirmBooking
-                }
-                disabled={
-                  confirming
-                }
+                onClick={confirmBooking}
+                disabled={confirming}
                 className="w-full mt-8 bg-red-600 hover:bg-red-700 disabled:bg-red-900 py-4 rounded-2xl font-bold text-lg"
               >
                 {confirming
@@ -866,13 +745,9 @@ export default function BookingPage() {
     <Suspense
       fallback={
         <main className="min-h-screen bg-black text-white flex items-center justify-center p-8">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-red-900 border-t-red-500 rounded-full animate-spin mx-auto" />
-
-            <p className="mt-5 text-gray-400">
-              Loading Booking...
-            </p>
-          </div>
+          <p className="text-gray-400">
+            Loading Booking...
+          </p>
         </main>
       }
     >
