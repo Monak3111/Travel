@@ -7,15 +7,11 @@ import {
   createAuthToken,
 } from "@/lib/auth";
 
-export async function POST(
-  req: Request
-) {
+export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const email = String(
-      body?.email ?? ""
-    )
+    const email = String(body?.email ?? "")
       .trim()
       .toLowerCase();
 
@@ -72,23 +68,17 @@ export async function POST(
       );
     }
 
-    /*
-     * CREATE AUTH TOKEN
-     */
     const token =
       createAuthToken(
-        user.id
+        String(user.id)
       );
 
-    /*
-     * LOGIN RESPONSE
-     */
     const response =
       NextResponse.json(
         {
+          success: true,
           message:
             "Login successful",
-
           user: {
             id: user.id,
             name: user.name,
@@ -100,28 +90,18 @@ export async function POST(
         }
       );
 
-    /*
-     * PRODUCTION AUTH COOKIE
-     *
-     * The browser stores this cookie
-     * and automatically sends it to:
-     *
-     * /api/booking/create
-     * /api/booking/create/list
-     *
-     * The user ID is never exposed
-     * through localStorage.
-     */
-    response.cookies.set({
-      name: COOKIE_NAME,
-      value: token,
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge:
-        60 * 60 * 24 * 30,
-    });
+    response.cookies.set(
+      COOKIE_NAME,
+      token,
+      {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge:
+          60 * 60 * 24 * 30,
+      }
+    );
 
     return response;
   } catch (error) {
