@@ -1,6 +1,10 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import {
+  Suspense,
+  useEffect,
+  useState,
+} from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -30,23 +34,38 @@ function BookingContent() {
   const params = useSearchParams();
 
   const hotelId = params.get("hotel");
-  const destinationId = params.get("destination");
+  const destinationId =
+    params.get("destination");
 
-  const [hotel, setHotel] = useState<Hotel | null>(null);
+  const [hotel, setHotel] =
+    useState<Hotel | null>(null);
+
   const [destination, setDestination] =
     useState<Destination | null>(null);
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [loading, setLoading] =
+    useState(true);
 
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
+  const [error, setError] =
+    useState("");
 
-  const [guests, setGuests] = useState(2);
-  const [rooms, setRooms] = useState(1);
+  const [checkIn, setCheckIn] =
+    useState("");
 
-  const [confirming, setConfirming] = useState(false);
-  const [confirmed, setConfirmed] = useState(false);
+  const [checkOut, setCheckOut] =
+    useState("");
+
+  const [guests, setGuests] =
+    useState(2);
+
+  const [rooms, setRooms] =
+    useState(1);
+
+  const [confirming, setConfirming] =
+    useState(false);
+
+  const [confirmed, setConfirmed] =
+    useState(false);
 
   /*
    * LOAD BOOKING TARGET
@@ -61,21 +80,30 @@ function BookingContent() {
          * HOTEL BOOKING
          */
         if (hotelId) {
-          const response = await fetch(
-            `/api/hotels/${hotelId}`,
-            {
-              cache: "no-store",
-              headers: {
-                Accept: "application/json",
-              },
-            }
-          );
+          const response =
+            await fetch(
+              `/api/hotels/${hotelId}`,
+              {
+                cache: "no-store",
+                headers: {
+                  Accept:
+                    "application/json",
+                },
+              }
+            );
 
           const contentType =
-            response.headers.get("content-type") || "";
+            response.headers.get(
+              "content-type"
+            ) || "";
 
-          if (!contentType.includes("application/json")) {
-            const text = await response.text();
+          if (
+            !contentType.includes(
+              "application/json"
+            )
+          ) {
+            const text =
+              await response.text();
 
             console.error(
               "HOTEL API RETURNED NON-JSON:",
@@ -87,7 +115,8 @@ function BookingContent() {
             );
           }
 
-          const data = await response.json();
+          const data =
+            await response.json();
 
           if (!response.ok) {
             throw new Error(
@@ -105,35 +134,45 @@ function BookingContent() {
             );
           }
 
-          const normalizedHotel: Hotel = {
-            id: Number(selectedHotel.id),
+          const normalizedHotel: Hotel =
+            {
+              id: Number(
+                selectedHotel.id
+              ),
 
-            name: String(
-              selectedHotel.name ?? "Hotel"
-            ),
+              name: String(
+                selectedHotel.name ??
+                  "Hotel"
+              ),
 
-            location: String(
-              selectedHotel.location ??
-                "TravelBlack"
-            ),
+              location: String(
+                selectedHotel.location ??
+                  "TravelBlack"
+              ),
 
-            image: String(
-              selectedHotel.image ?? ""
-            ),
+              image: String(
+                selectedHotel.image ?? ""
+              ),
 
-            price: Number(
-              selectedHotel.price ?? 5000
-            ),
+              price: Number(
+                selectedHotel.price ?? 5000
+              ),
 
-            rating:
-              selectedHotel.rating !==
-                undefined &&
-              selectedHotel.rating !== null
-                ? Number(selectedHotel.rating)
-                : undefined,
-          };
+              rating:
+                selectedHotel.rating !==
+                  undefined &&
+                selectedHotel.rating !==
+                  null
+                  ? Number(
+                      selectedHotel.rating
+                    )
+                  : undefined,
+            };
 
-          setHotel(normalizedHotel);
+          setHotel(
+            normalizedHotel
+          );
+
           setDestination(null);
 
           return;
@@ -143,21 +182,30 @@ function BookingContent() {
          * DESTINATION BOOKING
          */
         if (destinationId) {
-          const response = await fetch(
-            `/api/destination/${destinationId}`,
-            {
-              cache: "no-store",
-              headers: {
-                Accept: "application/json",
-              },
-            }
-          );
+          const response =
+            await fetch(
+              `/api/destination/${destinationId}`,
+              {
+                cache: "no-store",
+                headers: {
+                  Accept:
+                    "application/json",
+                },
+              }
+            );
 
           const contentType =
-            response.headers.get("content-type") || "";
+            response.headers.get(
+              "content-type"
+            ) || "";
 
-          if (!contentType.includes("application/json")) {
-            const text = await response.text();
+          if (
+            !contentType.includes(
+              "application/json"
+            )
+          ) {
+            const text =
+              await response.text();
 
             console.error(
               "DESTINATION API RETURNED NON-JSON:",
@@ -169,7 +217,8 @@ function BookingContent() {
             );
           }
 
-          const data = await response.json();
+          const data =
+            await response.json();
 
           if (!response.ok) {
             throw new Error(
@@ -181,33 +230,37 @@ function BookingContent() {
           const selectedDestination =
             data?.destination ?? data;
 
-          if (!selectedDestination?.id) {
+          if (
+            !selectedDestination?.id
+          ) {
             throw new Error(
               "Selected destination does not exist."
             );
           }
 
-          const normalizedDestination: Destination = {
-            id: Number(
-              selectedDestination.id
-            ),
+          const normalizedDestination: Destination =
+            {
+              id: Number(
+                selectedDestination.id
+              ),
 
-            name: String(
-              selectedDestination.name ??
-                "Travel Destination"
-            ),
+              name: String(
+                selectedDestination.name ??
+                  "Travel Destination"
+              ),
 
-            country:
-              selectedDestination.country
-                ? String(
-                    selectedDestination.country
-                  )
-                : undefined,
+              country:
+                selectedDestination.country
+                  ? String(
+                      selectedDestination.country
+                    )
+                  : undefined,
 
-            image: String(
-              selectedDestination.image ?? ""
-            ),
-          };
+              image: String(
+                selectedDestination.image ??
+                  ""
+              ),
+            };
 
           setDestination(
             normalizedDestination
@@ -249,45 +302,13 @@ function BookingContent() {
       setError("");
 
       /*
-       * USER
+       * IMPORTANT:
+       *
+       * We no longer read localStorage.
+       *
+       * The server identifies the logged-in
+       * user from the HTTP-only auth cookie.
        */
-      const storedUser =
-        localStorage.getItem(
-          "travelblack-user"
-        );
-
-      if (!storedUser) {
-        throw new Error(
-          "Please log in before booking."
-        );
-      }
-
-      let currentUser: {
-        id?: string | number;
-      };
-
-      try {
-        currentUser =
-          JSON.parse(storedUser);
-      } catch {
-        localStorage.removeItem(
-          "travelblack-user"
-        );
-
-        throw new Error(
-          "Your saved login session is invalid. Please log in again."
-        );
-      }
-
-      if (!currentUser?.id) {
-        localStorage.removeItem(
-          "travelblack-user"
-        );
-
-        throw new Error(
-          "User account could not be identified. Please log in again."
-        );
-      }
 
       /*
        * DATES
@@ -356,12 +377,13 @@ function BookingContent() {
 
       /*
        * BOOKING PAYLOAD
+       *
+       * NO userId is sent.
+       *
+       * The server gets the user ID
+       * from the authenticated cookie.
        */
       const payload = {
-        userId: String(
-          currentUser.id
-        ),
-
         hotelId: hotel
           ? Number(hotel.id)
           : null,
@@ -374,6 +396,7 @@ function BookingContent() {
         checkOut,
 
         guests: Number(guests),
+
         rooms: Number(rooms),
 
         total: Number(total),
@@ -387,31 +410,30 @@ function BookingContent() {
       /*
        * CREATE BOOKING
        */
-      const response = await fetch(
-        "/api/booking/create",
-        {
-          method: "POST",
+      const response =
+        await fetch(
+          "/api/booking/create",
+          {
+            method: "POST",
 
-          headers: {
-            "Content-Type":
-              "application/json",
-            Accept: "application/json",
-          },
+            headers: {
+              "Content-Type":
+                "application/json",
 
-          body: JSON.stringify(
-            payload
-          ),
-        }
-      );
+              Accept:
+                "application/json",
+            },
+
+            credentials: "include",
+
+            body: JSON.stringify(
+              payload
+            ),
+          }
+        );
 
       /*
-       * NEVER blindly call response.json().
-       *
-       * This prevents:
-       *
-       * Unexpected token '<'
-       *
-       * when a server returns HTML.
+       * NEVER blindly call response.json()
        */
       const contentType =
         response.headers.get(
@@ -425,7 +447,8 @@ function BookingContent() {
           "application/json"
         )
       ) {
-        result = await response.json();
+        result =
+          await response.json();
       } else {
         const text =
           await response.text();
@@ -433,8 +456,11 @@ function BookingContent() {
         console.error(
           "BOOKING API RETURNED NON-JSON:",
           {
-            status: response.status,
+            status:
+              response.status,
+
             contentType,
+
             response: text,
           }
         );
