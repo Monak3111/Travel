@@ -29,42 +29,70 @@ type Booking = {
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function loadBookings() {
       try {
-        const user = localStorage.getItem("travelblack-user");
-
-        if (!user) {
-          setLoading(false);
-          return;
-        }
-
-        const currentUser = JSON.parse(user);
-
-        if (!currentUser?.id) {
-          setLoading(false);
-          return;
-        }
+        setLoading(true);
+        setError("");
 
         const response = await fetch(
-          `/api/booking/create/list?userId=${encodeURIComponent(
-            currentUser.id
-          )}`,
+          "/api/booking/create/list",
           {
+            method: "GET",
             cache: "no-store",
+            credentials: "include",
+            headers: {
+              Accept: "application/json",
+            },
           }
         );
 
-        if (!response.ok) {
-          throw new Error("Failed to load bookings");
+        const contentType =
+          response.headers.get("content-type") || "";
+
+        if (!contentType.includes("application/json")) {
+          const text = await response.text();
+
+          console.error(
+            "BOOKINGS API RETURNED NON-JSON:",
+            text
+          );
+
+          throw new Error(
+            "Unable to load your bookings."
+          );
         }
 
         const data = await response.json();
 
-        setBookings(Array.isArray(data) ? data : []);
+        if (!response.ok) {
+          throw new Error(
+            data?.message ||
+              "Unable to load your bookings."
+          );
+        }
+
+        setBookings(
+          Array.isArray(data)
+            ? data
+            : Array.isArray(data?.bookings)
+            ? data.bookings
+            : []
+        );
       } catch (error) {
-        console.error("BOOKINGS LOAD ERROR:", error);
+        console.error(
+          "BOOKINGS LOAD ERROR:",
+          error
+        );
+
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Unable to load your bookings."
+        );
+
         setBookings([]);
       } finally {
         setLoading(false);
@@ -76,9 +104,12 @@ export default function MyBookingsPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-black text-white flex items-center justify-center">
+      <main className="min-h-screen bg-black text-white flex items-center justify-center p-8">
         <div className="text-center">
-          <div className="text-4xl mb-4">✈️</div>
+          <div className="text-5xl mb-5">
+            ✈️
+          </div>
+
           <p className="text-gray-400">
             Loading your bookings...
           </p>
@@ -87,10 +118,46 @@ export default function MyBookingsPage() {
     );
   }
 
-  return (
-    <main className="min-h-screen bg-black text-white p-8">
-      <section className="max-w-7xl mx-auto">
+  if (error) {
+    return (
+      <main className="min-h-screen bg-black text-white flex items-center justify-center p-8">
+        <div className="text-center max-w-xl">
+          <div className="text-5xl mb-5">
+            🔐
+          </div>
 
+          <h1 className="text-3xl font-bold">
+            Booking Error
+          </h1>
+
+          <p className="text-gray-400 mt-4">
+            {error}
+          </p>
+
+          <button
+            type="button"
+            onClick={() =>
+              window.location.reload()
+            }
+            className="mt-7 bg-red-600 hover:bg-red-700 px-8 py-4 rounded-2xl font-bold"
+          >
+            Try Again
+          </button>
+
+          <a
+            href="/"
+            className="block mt-4 border border-red-900 hover:bg-zinc-900 px-8 py-4 rounded-2xl font-bold"
+          >
+            Back Home
+          </a>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-black text-white px-4 py-12 md:px-8">
+      <section className="max-w-7xl mx-auto">
         <div className="mb-10">
           <p className="text-red-500 font-semibold uppercase tracking-wider">
             TravelBlack
@@ -116,12 +183,12 @@ export default function MyBookingsPage() {
             </h2>
 
             <p className="text-gray-400 mt-3">
-              Your confirmed reservations will appear here.
+              Your confirmed reservations will
+              appear here.
             </p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-8">
-
             {bookings.map((booking) => {
               const image =
                 booking.hotel?.image ||
@@ -143,9 +210,7 @@ export default function MyBookingsPage() {
                   key={booking.id}
                   className="bg-zinc-950 border border-red-900 rounded-3xl overflow-hidden shadow-2xl"
                 >
-
                   <div className="relative h-72 w-full overflow-hidden bg-zinc-900">
-
                     <img
                       src={image}
                       alt={title}
@@ -164,11 +229,9 @@ export default function MyBookingsPage() {
                         ✓ Confirmed
                       </span>
                     </div>
-
                   </div>
 
                   <div className="p-7">
-
                     <h2 className="text-2xl font-bold">
                       {title}
                     </h2>
@@ -178,7 +241,6 @@ export default function MyBookingsPage() {
                     </p>
 
                     <div className="mt-6 grid grid-cols-2 gap-4">
-
                       <div className="bg-black border border-zinc-800 rounded-2xl p-4">
                         <p className="text-gray-500 text-sm">
                           Check-in
@@ -187,11 +249,14 @@ export default function MyBookingsPage() {
                         <p className="font-semibold mt-1">
                           {new Date(
                             booking.checkIn
-                          ).toLocaleDateString("en-IN", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                          ).toLocaleDateString(
+                            "en-IN",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            }
+                          )}
                         </p>
                       </div>
 
@@ -203,18 +268,19 @@ export default function MyBookingsPage() {
                         <p className="font-semibold mt-1">
                           {new Date(
                             booking.checkOut
-                          ).toLocaleDateString("en-IN", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                          ).toLocaleDateString(
+                            "en-IN",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            }
+                          )}
                         </p>
                       </div>
-
                     </div>
 
                     <div className="mt-4 grid grid-cols-3 gap-3">
-
                       <div className="bg-black rounded-xl p-3">
                         <p className="text-gray-500 text-xs">
                           Guests
@@ -244,18 +310,21 @@ export default function MyBookingsPage() {
                           {booking.status}
                         </p>
                       </div>
-
                     </div>
 
                     <div className="mt-6 pt-5 border-t border-zinc-800 flex items-center justify-between">
-
                       <div>
                         <p className="text-gray-500 text-sm">
                           Total paid
                         </p>
 
                         <p className="text-2xl font-extrabold text-red-500">
-                          ₹{booking.total.toLocaleString("en-IN")}
+                          ₹
+                          {Number(
+                            booking.total
+                          ).toLocaleString(
+                            "en-IN"
+                          )}
                         </p>
                       </div>
 
@@ -268,17 +337,13 @@ export default function MyBookingsPage() {
                           {booking.id}
                         </p>
                       </div>
-
                     </div>
-
                   </div>
                 </div>
               );
             })}
-
           </div>
         )}
-
       </section>
     </main>
   );
